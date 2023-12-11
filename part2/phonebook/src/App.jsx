@@ -9,6 +9,15 @@ const App = () => {
   const addContact = (event) => {
     event.preventDefault()
 
+    const nameExists = persons.some(
+      (person) => person.name.toLowerCase() === newName.toLowerCase()
+      )
+    
+    if (nameExists) {
+      alert(`${newName} is already added to phonebook`)
+      return
+    }
+
     const personObject = {
       name: newName,
       id: persons.length + 1
