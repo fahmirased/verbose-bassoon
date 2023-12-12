@@ -26,8 +26,9 @@ const App = () => {
 
     const nameExists = persons.some(
       (person) => person.name.toLowerCase() === newName.toLowerCase())
+    
     const numberExists = persons.some(
-       (person) => person.number === newNumber)
+      (person) => person.number === newNumber)
     
     if (nameExists) {
       alert(`${newName} is already added to phonebook`)
