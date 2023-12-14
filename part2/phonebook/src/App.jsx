@@ -7,8 +7,8 @@ import personServices from './services/person'
 
 const App = () => {
   const [persons, setPersons] = useState([])
-  const [newName, setNewName] = useState([])
-  const [newNumber, setNewNumber] = useState([])
+  const [newName, setNewName] = useState('')
+  const [newNumber, setNewNumber] = useState('')
   const [search,setSearch] = useState ('')
 
   useEffect(() => {
@@ -22,42 +22,78 @@ const App = () => {
   }, [])
   console.log('render', persons.length, 'persons')
 
-  const addContact = (event) => {
+  const addContact = async (event) => {
     event.preventDefault()
 
-    const nameExists = persons.some(
+    const nameExists = persons.find(
       (person) => person.name.toLowerCase() === newName.toLowerCase())
-    
-    const numberExists = persons.some(
-      (person) => person.number === newNumber)
-    
-    if (nameExists) {
-      alert(`${newName} is already added to phonebook`)
-      return
-    }
 
-    if (numberExists) {
-      alert(`${newNumber} is already added to phonebook`)
-      return
-    }
+      if (!newName) {
+        alert('Please enter a name')
+        return
+      }
+      if (!newNumber) {
+        alert('Please enter number')
+        return
+      }
 
-    const personObject = {
-      name: newName,
-      number: newNumber,
-      id: persons.length + 1
-    }
-    personServices
-      .create(personObject)
-      .then(returnedPersons => {
-        console.log(response)
-        setPersons(persons.concat(returnedPersons))
-        setNewName('')
-        setNewNumber('')
-    })
-  }
+      if (nameExists) {
+        const confirmUpdate = window.confirm(
+          `${newName} is already added to the phonebook, replace the old number with a new one?`
+        )
+
+        if (!confirmUpdate) {
+          return
+        }
+
+        try {
+          const updatePerson = await personServices.update(nameExists.id, {
+            ...nameExists,
+            number: newNumber
+          })
+          setPersons((prevPersons) =>
+            prevPersons.map((person) =>
+              person.id === nameExists.id ? updatePerson : person
+            )
+          )
+
+          setNewName('')
+          setNewNumber('')
+        } catch (error) {
+          console.error('Error updating contact:', error)
+        }
+      } else {
+        const numberExists = persons.some(
+          (person) => person.number === newNumber)
+    
+        if (numberExists) {
+          alert(`${newNumber} is already added to phonebook`)
+          return
+        }
+    
+        const personObject = {
+          name: newName,
+          number: newNumber,
+          id: persons.length + 1
+        }
+
+        try {
+          const returnedPersons = await personServices.create({
+            name: newName,
+            number: newNumber
+          })
+          setPersons((prevPersons) => prevPersons.concat(returnedPersons))
+          setNewName('')
+          setNewNumber('')
+        } catch (error) {
+          console.error('Error updating contact:', error)
+        }
+        }
+      }
+  
 
   const deleteContact = (id, name) => {
-    console.log('delete contact called')
+    console.log('deleteContact called')
     const confirmDelete = window.confirm(`Delete ${name}?`)
     console.log('confirmDelete:', confirmDelete)
 
