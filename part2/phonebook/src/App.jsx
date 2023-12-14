@@ -15,9 +15,9 @@ const App = () => {
     console.log('effect')
     personServices
       .getAll()
-      .then(response => {
+      .then(initialPersons => {
         console.log('promise fulfilled')
-        setPersons(response.data)
+        setPersons(initialPersons)
       })
   }, [])
   console.log('render', persons.length, 'persons')
@@ -48,13 +48,29 @@ const App = () => {
     }
     personServices
       .create(personObject)
-      .then(response => {
+      .then(returnedPersons => {
         console.log(response)
-        setPersons(persons.concat(response.data))
+        setPersons(persons.concat(returnedPersons))
         setNewName('')
         setNewNumber('')
     })
-    
+  }
+
+  const deleteContact = (id, name) => {
+    console.log('delete contact called')
+    const confirmDelete = window.confirm(`Delete ${name}?`)
+    console.log('confirmDelete:', confirmDelete)
+
+    if (confirmDelete) {
+      personServices
+        .remove(id)
+        .then(() => {
+          setPersons(persons.filter(person => person.id !== id))
+        })
+        .catch(error => {
+          console.error('Error deleting contact:', error)
+        })
+    }
   }
 
   return (
@@ -76,6 +92,7 @@ const App = () => {
       <Persons 
         search = {search}
         persons = {persons}
+        onDelete = {deleteContact}
       />
     </div>
   )
