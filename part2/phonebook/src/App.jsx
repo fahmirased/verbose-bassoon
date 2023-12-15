@@ -78,11 +78,6 @@ const App = () => {
             }, 5000)
             setNewName('')
             setNewNumber('')
-            personServices
-              .remove(id)
-              .then(() => {
-                setPersons(persons.filter(person => person.id !== id))
-              })
           } else {
           console.error('Error updating contact:', error)
           }
