@@ -58,15 +58,34 @@ const App = () => {
               person.id === nameExists.id ? updatePerson : person
             )
           )
-
           setNewName('')
           setNewNumber('')
           setNotification({
             type: 'success',
             message: `Number updated for ${newName}` 
           })
+          setTimeout(() => {
+            setNotification(null)
+          }, 5000)
         } catch (error) {
+          if (error.response && error.response.status === 404) {
+            setNotification({
+              type: 'error',
+              message: `Information of ${newName} has already been removed from the server`
+            }) 
+            setTimeout(() => {
+              setNotification(null)
+            }, 5000)
+            setNewName('')
+            setNewNumber('')
+            personServices
+              .remove(id)
+              .then(() => {
+                setPersons(persons.filter(person => person.id !== id))
+              })
+          } else {
           console.error('Error updating contact:', error)
+          }
         }
       } else {
         const numberExists = persons.some(
