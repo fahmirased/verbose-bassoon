@@ -1,7 +1,6 @@
 const express = require('express')
 const morgan = require('morgan')
 const app = express()
-const cors = require('cors')
 
 morgan.token('postData', (request) => {
     if (request.method === 'POST') {
@@ -10,9 +9,17 @@ morgan.token('postData', (request) => {
     return ''
   })
 
-app.use('cors')
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :postData'))
 app.use(express.json())
+
+const requestLogger = (request, response, next) => {
+  console.log('Method:', request.method)
+  console.log('Path:', request.path)
+  console.log('Body:', request.body)
+  console.log('---')
+  next()
+}
+app.use(requestLogger)
 
 let persons = [
     {
@@ -64,6 +71,13 @@ app.delete('/api/persons/:id', (request, response) => {
     response.status(204).end()
   })
 
+const generateId = () => {
+  const maxId = persons.length > 0
+  ? Math.max(...persons.map(n => n.id))
+  : 0
+  return maxId + 1
+}
+
 app.post('/api/persons', (request, response) => {
     const body = request.body
     
@@ -81,7 +95,7 @@ app.post('/api/persons', (request, response) => {
     }
 
     const newPerson = {
-        id: Math.floor(Math.random()*10000),
+        id: generateId(),
         name: body.name,
         number: body.number
     }
@@ -98,6 +112,11 @@ app.get('/info', (request, response) => {
 
     response.send(text)
 })
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({error: 'unknown endpoint'})
+}
+app.use(unknownEndpoint)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
