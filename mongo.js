@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 if (process.argv.length < 3) {
-  console.log('Give password as an argument');
+  console.log('Usage: node mongo.js <password> [<name> <number>]');
   process.exit(1);
 }
 
@@ -11,45 +11,64 @@ const url = `mongodb+srv://fahmirased:${password}@fullstackopen.rfmu2fp.mongodb.
 
 mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
 
-const noteSchema = new mongoose.Schema({
+const phonebookSchema = new mongoose.Schema({
   name: String,
   number: String,
-  id: Number
+  id: Number,
 });
 
-const Person = mongoose.model('Person', noteSchema);
+const Person = mongoose.model('Person', phonebookSchema);
 
-const persons = [
-  {
-    "name": "Arto Hellas",
-    "number": "040-123456",
-    "id": 1
-  },
-  {
-    "name": "Ada Lovelace",
-    "number": "39-44-5323523",
-    "id": 2
-  },
-  {
-    "name": "Dan Abramov",
-    "number": "12-43-234345",
-    "id": 3
-  },
-  {
-    "name": "Mary Poppendieck",
-    "number": "39-23-6423122",
-    "id": 4
-  }
-];
+const addEntry = (name, number) => {
+  // Check if an entry with the same name and number already exists
+  Person.findOne({ name: name, number: number })
+    .then(existingEntry => {
+      if (existingEntry) {
+        console.log(`Entry already exists: ${name} - ${number}`);
+        mongoose.connection.close();
+      } else {
+        // Add the entry if it doesn't exist
+        const entry = new Person({
+          name: name,
+          number: number,
+        });
 
-// Use the create method to save multiple documents
-Person.create(persons)
-  .then(results => {
-    console.log('Persons saved:', results);
-  })
-  .catch(error => {
-    console.error('Error saving persons:', error);
-  })
-  .finally(() => {
-    mongoose.connection.close();
-  });
+        entry.save().then(() => {
+          console.log(`Entry added: ${name} - ${number}`);
+          mongoose.connection.close();
+        })
+        .catch(error => {
+          console.error('Error adding entry:', error);
+          mongoose.connection.close();
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Error checking for existing entry:', error);
+      mongoose.connection.close();
+    });
+};
+
+const listEntries = () => {
+  Person.find({})
+    .then(entries => {
+      console.log('Phonebook entries:');
+      entries.forEach(entry => {
+        console.log(`${entry.name} - ${entry.number}`);
+      });
+      mongoose.connection.close();
+    })
+    .catch(error => {
+      console.error('Error listing entries:', error);
+      mongoose.connection.close();
+    });
+};
+
+const name = process.argv[3];
+const number = process.argv[4];
+
+if (name && number) {
+  addEntry(name, number);
+} else {
+  listEntries();
+}
