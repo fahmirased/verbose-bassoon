@@ -4,7 +4,7 @@ const app = express()
 const cors = require('cors')
 const mongoose = require('mongoose');
 
-const password = "4tkTFTuCZFhDdRxe"
+const password = "..."
 
 const url = `mongodb+srv://fahmirased:${password}@fullstackopen.rfmu2fp.mongodb.net/personApp?retryWrites=true&w=majority`;
 
@@ -81,7 +81,7 @@ app.use(requestLogger)
 app.use(express.static('dist'))
 
 
-/* let persons = [
+let persons = [
     {
         "name": "Arto Hellas",
         "number": "040-123456",
@@ -101,7 +101,7 @@ app.use(express.static('dist'))
         "name": "Mary Poppendieck",
         "number": "39-23-6423122",
         "id": 4  }
-] */
+]
 
 app.get('/api/persons', (request, response) => {
   Person.find({}).then(persons => {
