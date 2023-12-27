@@ -2,6 +2,66 @@ const express = require('express')
 const morgan = require('morgan')
 const app = express()
 const cors = require('cors')
+const mongoose = require('mongoose');
+
+const password = "4tkTFTuCZFhDdRxe"
+
+const url = `mongodb+srv://fahmirased:${password}@fullstackopen.rfmu2fp.mongodb.net/personApp?retryWrites=true&w=majority`;
+
+mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
+
+const phonebookSchema = new mongoose.Schema({
+  name: String,
+  number: String,
+  id: Number,
+});
+
+const Person = mongoose.model('Person', phonebookSchema);
+
+const addEntry = (name, number) => {
+  // Check if an entry with the same name and number already exists
+  Person.findOne({ name: name, number: number })
+    .then(existingEntry => {
+      if (existingEntry) {
+        console.log(`Entry already exists: ${name} - ${number}`);
+        mongoose.connection.close();
+      } else {
+        // Add the entry if it doesn't exist
+        const entry = new Person({
+          name: name,
+          number: number,
+        });
+
+        entry.save().then(() => {
+          console.log(`Entry added: ${name} - ${number}`);
+          mongoose.connection.close();
+        })
+        .catch(error => {
+          console.error('Error adding entry:', error);
+          mongoose.connection.close();
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Error checking for existing entry:', error);
+      mongoose.connection.close();
+    });
+};
+
+const listEntries = () => {
+  Person.find({})
+    .then(entries => {
+      console.log('Phonebook entries:');
+      entries.forEach(entry => {
+        console.log(`${entry.name} - ${entry.number}`);
+      });
+      mongoose.connection.close();
+    })
+    .catch(error => {
+      console.error('Error listing entries:', error);
+      mongoose.connection.close();
+    });
+};
 
 const requestLogger = (request, response, next) => {
   console.log('Method:', request.method)
@@ -20,7 +80,8 @@ app.use(express.json())
 app.use(requestLogger)
 app.use(express.static('dist'))
 
-let persons = [
+
+/* let persons = [
     {
         "name": "Arto Hellas",
         "number": "040-123456",
@@ -40,10 +101,12 @@ let persons = [
         "name": "Mary Poppendieck",
         "number": "39-23-6423122",
         "id": 4  }
-]
+] */
 
 app.get('/api/persons', (request, response) => {
+  Person.find({}).then(persons => {
     response.json(persons)
+  })
 })
 
 app.get('/api/persons/:id', (request, response) => {
