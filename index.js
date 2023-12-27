@@ -14,7 +14,7 @@ const phonebookSchema = new mongoose.Schema({
   name: String,
   number: String,
   id: Number,
-});
+})
 
 const Person = mongoose.model('Person', phonebookSchema);
 
